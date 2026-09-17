@@ -1,0 +1,180 @@
+<div class="payment-page">
+  <div class="payment-container">
+    @if (isPaymentInProgress()) {
+      <!-- ==================== LOADING ==================== -->
+      <p-card styleClass="payment-card status-card">
+        <div class="status-content">
+          <p-progress-spinner strokeWidth="4" [style]="{ width: '50px', height: '50px' }" />
+
+          <h2>Processing payment...</h2>
+
+          <p>Please wait while we process your payment.</p>
+        </div>
+      </p-card>
+    } @else if (isError()) {
+      <!-- ==================== ERROR ==================== -->
+      <p-card styleClass="payment-card status-card">
+        <div class="status-icon error-icon">!</div>
+
+        <div class="status-content">
+          <h2>Payment failed</h2>
+
+          <p>Oops! Something went wrong on our end.</p>
+
+          <p>
+            Please contact our support at
+            <strong>superfastsupport@xyzbilling.com</strong>
+          </p>
+        </div>
+      </p-card>
+    } @else if (isPaymentCompleted()) {
+      <!-- ==================== SUCCESS ==================== -->
+      <p-card styleClass="payment-card status-card">
+        <div class="status-icon success-icon">✓</div>
+
+        <div class="status-content">
+          <h2>Payment successful</h2>
+
+          <p>Yay! Your payment has come through.</p>
+
+          @if (paymentConfirmation(); as confirmation) {
+            <div class="confirmation-box">
+              <div class="confirmation-row">
+                <span>Order number</span>
+                <strong>
+                  {{ confirmation.orderNumber }}
+                </strong>
+              </div>
+
+              <div class="confirmation-row">
+                <span>Payment ID</span>
+                <strong>
+                  {{ confirmation.paymentId }}
+                </strong>
+              </div>
+            </div>
+          }
+        </div>
+      </p-card>
+    } @else {
+      <!-- ==================== PAYMENT FORM ==================== -->
+      <p-card styleClass="payment-card">
+        <div class="form-header">
+          <h1>Make a payment</h1>
+          <p>Enter your payment details below.</p>
+        </div>
+
+        <form (ngSubmit)="pay()" class="payment-form">
+          <!-- Order number -->
+          <div class="form-field">
+            <label for="orderNumber"> Order number </label>
+
+            <input
+              pInputText
+              id="orderNumber"
+              type="text"
+              [value]="paymentVm().orderNumber"
+              readonly
+              class="readonly-input"
+            />
+          </div>
+
+          <!-- Amount -->
+          <div class="form-field">
+            <label for="amount"> Payable amount </label>
+
+            <p-inputnumber
+              inputId="amount"
+              [ngModel]="paymentVm().amount"
+              (ngModelChange)="paymentVm.update(vm => ({
+                ...vm,
+                amount: $event ?? 0
+              }))"
+              name="amount"
+              mode="decimal"
+              [minFractionDigits]="2"
+              [maxFractionDigits]="2"
+              [min]="0"
+              placeholder="0.00"
+              styleClass="full-width"
+            />
+          </div>
+
+          <!-- Currency -->
+          <div class="form-field">
+            <label for="currency"> Currency </label>
+
+            <p-select
+              inputId="currency"
+              [options]="currencies"
+              [ngModel]="paymentVm().currency"
+              (ngModelChange)="paymentVm.update(vm => ({
+                ...vm,
+                currency: $event
+              }))"
+              name="currency"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select currency"
+              appendTo="body"
+              styleClass="full-width"
+            />
+          </div>
+
+          <!-- Payment gateway -->
+          <div class="form-field">
+            <label for="gateway"> Payment gateway </label>
+
+            <p-select
+              inputId="gateway"
+              [options]="gateways"
+              [ngModel]="paymentVm().gatewayId"
+              (ngModelChange)="paymentVm.update(vm => ({
+                ...vm,
+                gatewayId: $event
+              }))"
+              name="gateway"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select payment gateway"
+              appendTo="body"
+              styleClass="full-width"
+            />
+          </div>
+
+          <!-- Description -->
+          <div class="form-field">
+            <label for="description">
+              Description
+              <span>(optional)</span>
+            </label>
+
+            <textarea
+              pTextarea
+              id="description"
+              [ngModel]="paymentVm().description"
+              (ngModelChange)="paymentVm.update(vm => ({
+                ...vm,
+                description: $event
+              }))"
+              name="description"
+              rows="4"
+              placeholder="Add a description..."
+              class="full-width"
+            ></textarea>
+          </div>
+
+          <!-- Pay button -->
+          <p-button
+            type="submit"
+            label="Pay"
+            severity="success"
+            [loading]="isPaymentInProgress()"
+            styleClass="pay-button"
+          />
+        </form>
+      </p-card>
+    }
+  </div>
+</div>
+```
